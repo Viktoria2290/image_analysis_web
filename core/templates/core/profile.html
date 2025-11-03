@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль - Image Analysis Service{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Личный кабинет</h1>
+
+    <div class="profile-section">
+        <h2>Информация профиля</h2>
+        <div id="profile-data">
+            <!-- Данные профиля будут загружены через JavaScript -->
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <h2>Статистика</h2>
+        <div class="stats-cards">
+            <div class="stat-card">
+                <h3>Документы</h3>
+                <p id="documents-count">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Заказы</h3>
+                <p id="orders-count">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Активные</h3>
+                <p id="active-orders">0</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript для загрузки данных профиля через API
+document.addEventListener('DOMContentLoaded', function() {
+    // Загрузка данных профиля
+    fetch('/api/profile/me/')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('profile-data').innerHTML = `
+                <p><strong>Имя пользователя:</strong> ${data.username}</p>
+                <p><strong>Email:</strong> ${data.email}</p>
+                <p><strong>Телефон:</strong> ${data.phone || 'Не указан'}</p>
+                <p><strong>Компания:</strong> ${data.company || 'Не указана'}</p>
+            `;
+        });
+
+    // Загрузка статистики
+    fetch('/api/documents/')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('documents-count').textContent = data.count || data.length;
+        });
+
+    fetch('/api/orders/')
+        .then(response => response.json())
+        .then(data => {
+            const orders = data.count || data.length;
+            document.getElementById('orders-count').textContent = orders;
+
+            // Подсчет активных заказов
+            const activeOrders = data.filter ? data.filter(order =>
+                order.status === 'pending' || order.status === 'processing').length : 0;
+            document.getElementById('active-orders').textContent = activeOrders;
+        });
+});
+</script>
+{% endblock %}

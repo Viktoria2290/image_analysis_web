@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - Image Analysis Service{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1>Добро пожаловать в Image Analysis Service</h1>
+        <p>Сервис анализа изображений и документов с использованием AI</p>
+
+        {% if user.is_authenticated %}
+            <div class="dashboard-cards">
+                <div class="card">
+                    <h3>Документы</h3>
+                    <p>Управление вашими документами</p>
+                    <a href="{% url 'documents' %}" class="btn">Перейти</a>
+                </div>
+                <div class="card">
+                    <h3>Галерея</h3>
+                    <p>Просмотр обработанных изображений</p>
+                    <a href="{% url 'gallery' %}" class="btn">Перейти</a>
+                </div>
+                <div class="card">
+                    <h3>Заказы</h3>
+                    <p>История и статусы заказов</p>
+                    <a href="{% url 'orders' %}" class="btn">Перейти</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="auth-actions">
+                <a href="{% url 'api-register' %}" class="btn btn-primary">Начать работу</a>
+                <a href="{% url 'api-login' %}" class="btn btn-secondary">Войти в систему</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

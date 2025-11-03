@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      target: builder
+    environment:
+      - DEBUG=0
+      - DATABASE_URL=postgres://test_user:test_password@db:5432/test_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=test-secret-key-for-docker-tests
+      - ALLOWED_HOSTS=localhost,testserver
+    depends_on:
+      - db
+      - redis
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             python manage.py migrate &&
+             python manage.py test --noinput"
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=test_db
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+
+  redis:
+    image: redis:7-alpine

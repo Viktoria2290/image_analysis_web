@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}Загрузка документов - Image Analysis Service{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-upload"></i> Загрузка документов</h1>
+        <p>Загрузите документы для анализа</p>
+    </div>
+
+    <div class="upload-section">
+        <div class="upload-card">
+            <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <h3>Перетащите файлы сюда</h3>
+                <p>или</p>
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    Выберите файлы
+                </button>
+                <input type="file" id="fileInput" multiple style="display: none;"
+                       accept=".jpg,.jpeg,.png,.gif,.bmp,.tiff,.pdf,.txt,.doc,.docx">
+            </div>
+
+            <div class="file-requirements">
+                <h4>Поддерживаемые форматы:</h4>
+                <ul>
+                    <li><i class="fas fa-image"></i> Изображения: JPG, PNG, GIF, BMP, TIFF</li>
+                    <li><i class="fas fa-file-pdf"></i> PDF документы</li>
+                    <li><i class="fas fa-file-alt"></i> Текстовые файлы: TXT, DOC, DOCX</li>
+                </ul>
+                <p><strong>Максимальный размер файла: 50MB</strong></p>
+            </div>
+        </div>
+
+        <div class="upload-progress" id="uploadProgress" style="display: none;">
+            <h3>Загрузка файлов</h3>
+            <div id="progressContainer"></div>
+        </div>
+
+        <div class="recent-uploads">
+            <h3>Недавно загруженные документы</h3>
+            <div id="recentDocuments">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressContainer = document.getElementById('progressContainer');
+
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+    });
+
+    uploadArea.addEventListener('dragleave', function() {
+        uploadArea.classList.remove('drag-over');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', function() {
+        handleFiles(this.files);
+    });
+
+    function handleFiles(files) {
+        if (files.length === 0) return;
+
+        uploadProgress.style.display = 'block';
+        progressContainer.innerHTML = '';
+
+        Array.from(files).forEach((file, index) => {
+            uploadFile(file, index);
+        });
+    }
+
+    function uploadFile(file, index) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const progressItem = document.createElement('div');
+        progressItem.className = 'progress-item';
+        progressItem.innerHTML = `
+            <div class="file-info">
+                <span class="file-name">${file.name}</span>
+                <span class="file-size">(${formatFileSize(file.size)})</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-status">Подготовка...</div>
+        `;
+        progressContainer.appendChild(progressItem);
+
+        const progressFill = progressItem.querySelector('.progress-fill');
+        const progressStatus = progressItem.querySelector('.progress-status');
+
+        fetch('/api/documents/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+            return response.json();
+        })
+        .then(data => {
+            progressFill.style.width = '100%';
+            progressStatus.innerHTML = '<i class="fas fa-check success"></i> Успешно загружено';
+            loadRecentDocuments(); // Reload recent documents
+        })
+        .catch(error => {
+            progressFill.style.width = '100%';
+            progressFill.style.background = '#e74c3c';
+            progressStatus.innerHTML = '<i class="fas fa-times error"></i> Ошибка загрузки';
+            console.error('Upload error:', error);
+        });
+
+        // Simulate progress updates (in real app, you'd use XMLHttpRequest for progress events)
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress >= 90) {
+                clearInterval(interval);
+            }
+            progressFill.style.width = `${progress}%`;
+        }, 200);
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    // Load recent documents
+    loadRecentDocuments();
+
+    function loadRecentDocuments() {
+        fetch('/api/documents/')
+            .then(response => response.json())
+            .then(documents => {
+                const container = document.getElementById('recentDocuments');
+                if (documents.length === 0) {
+                    container.innerHTML = '<p>У вас пока нет загруженных документов</p>';
+                } else {
+                    const recentDocs = documents.slice(0, 5); // Show last 5 documents
+                    container.innerHTML = recentDocs.map(doc => `
+                        <div class="document-item">
+                            <div class="doc-icon">
+                                <i class="fas ${getFileIcon(doc.file_type)}"></i>
+                            </div>
+                            <div class="doc-info">
+                                <div class="doc-name">${doc.original_name}</div>
+                                <div class="doc-meta">
+                                    <span class="doc-size">${formatFileSize(doc.size)}</span>
+                                    <span class="doc-status ${doc.status}">${getStatusText(doc.status)}</span>
+                                    <span class="doc-date">${new Date(doc.uploaded_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading documents:', error);
+                document.getElementById('recentDocuments').innerHTML = '<p>Ошибка загрузки документов</p>';
+            });
+    }
+
+    function getFileIcon(fileType) {
+        const icons = {
+            'image': 'fa-image',
+            'pdf': 'fa-file-pdf',
+            'text': 'fa-file-alt',
+            'other': 'fa-file'
+        };
+        return icons[fileType] || 'fa-file';
+    }
+
+    function getStatusText(status) {
+        const statusTexts = {
+            'uploaded': 'Загружено',
+            'processing': 'Обработка',
+            'completed': 'Завершено',
+            'failed': 'Ошибка'
+        };
+        return statusTexts[status] || status;
+    }
+});
+</script>
+{% endblock %}

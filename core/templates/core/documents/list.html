@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Документы - Image Analysis Service{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Мои документы</h1>
+    <p>Страница управления документами (будет реализована в ЭТАПЕ 4)</p>
+    <div id="documents-list">
+        <!-- Список документов будет загружен через JavaScript -->
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/documents/')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('documents-list');
+            if (data.length === 0) {
+                container.innerHTML = '<p>У вас пока нет документов</p>';
+            } else {
+                container.innerHTML = '<p>Документы загружены через API</p>';
+            }
+        });
+});
+</script>
+{% endblock %}

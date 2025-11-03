@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Image Analysis Service{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="{% url 'home' %}">
+                    <i class="fas fa-image"></i>
+                    ImageAnalysis
+                </a>
+            </div>
+            <div class="nav-menu">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'documents' %}"><i class="fas fa-file"></i> Документы</a>
+                    <a href="{% url 'gallery' %}"><i class="fas fa-images"></i> Галерея</a>
+                    <a href="{% url 'orders' %}"><i class="fas fa-shopping-cart"></i> Заказы</a>
+                    <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Профиль</a>
+                    <form method="post" action="{% url 'api-logout' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i> Выйти
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'api-login' %}"><i class="fas fa-sign-in-alt"></i> Войти</a>
+                    <a href="{% url 'api-register' %}"><i class="fas fa-user-plus"></i> Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Image Analysis Service. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
