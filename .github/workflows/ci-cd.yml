@@ -66,12 +66,20 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
+
+    - name: Set up Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose-plugin
+
     - name: Build Docker image for testing
       run: docker build -t image-analysis-web-test:latest .
 
     - name: Run tests in Docker environment
       run: |
-        docker-compose -f docker-compose.prod.yml up --build --abort-on-container-exit
+        docker compose -f docker-compose.prod.yml up --build --abort-on-container-exit
 
   build:
     name: "Build Production Image"
@@ -81,6 +89,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
 
     - name: Build production Docker image
       run: |
