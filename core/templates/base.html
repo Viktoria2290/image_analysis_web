@@ -23,15 +23,15 @@
                     <a href="{% url 'gallery' %}"><i class="fas fa-images"></i> Галерея</a>
                     <a href="{% url 'orders' %}"><i class="fas fa-shopping-cart"></i> Заказы</a>
                     <a href="{% url 'profile' %}"><i class="fas fa-user"></i> Профиль</a>
-                    <form method="post" action="{% url 'api-logout' %}" style="display: inline;">
+                    <form method="post" action="{% url 'user-logout' %}" style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" class="logout-btn">
                             <i class="fas fa-sign-out-alt"></i> Выйти
                         </button>
                     </form>
                 {% else %}
-                    <a href="{% url 'api-login' %}"><i class="fas fa-sign-in-alt"></i> Войти</a>
-                    <a href="{% url 'api-register' %}"><i class="fas fa-user-plus"></i> Регистрация</a>
+                    <a href="{% url 'user-login' %}"><i class="fas fa-sign-in-alt"></i> Войти</a>
+                    <a href="{% url 'user-registration' %}"><i class="fas fa-user-plus"></i> Регистрация</a>
                 {% endif %}
             </div>
         </div>

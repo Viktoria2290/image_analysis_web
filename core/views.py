@@ -50,6 +50,11 @@ def gallery_view(_request):
     return render(_request, 'core/gallery.html')
 
 
+# ДОБАВЛЕНО: Простая форма входа
+def login_form_view(request):
+    return render(request, 'core/login_form.html')
+
+
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def health_check(_request):

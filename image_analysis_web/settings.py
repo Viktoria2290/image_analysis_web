@@ -7,7 +7,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG', '0') == '1'  # Исправлено на '1'
+DEBUG = os.getenv('DEBUG', '0') == '1'
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -66,16 +66,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'image_analysis_web.wsgi.application'
 
-# Database
+
 DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:
-    # Для Docker и production
+
     import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
     }
 else:
-    # Для локальной разработки
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
